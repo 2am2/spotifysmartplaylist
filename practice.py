@@ -44,7 +44,22 @@ def artist_search(token, artist):
         return None 
     return json_result[0]
 
+def get_songs_by_artist(token, artist_id):
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?country=US"
+    headers = get_auth_header(token)
+    result = get(url, headers = headers)
+    json_result  = json.loads(result.content)["tracks"]
+    return json_result
+
+def get_user(token):
+    url = f"https://api.spotify.com/v1/me" 
+    headers = get_auth_header(token)
+    user = get(url, headers = headers)
+    return user
+
 token = get_token()
-result = artist_search(token, "gub")
-print(result["name"])
+result = artist_search(token,"gun")
+#get_user(token)
+print(result)
+
 
