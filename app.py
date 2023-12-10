@@ -2,7 +2,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect
 import time
-import json
+import os
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ def login():
     auth_url = sp_oauth.get_authorize_url()
     print(auth_url)
     return redirect(auth_url)
-   
+
 
 @app.route('/authorize')
 def authorize():
@@ -95,7 +95,7 @@ def get_token():
 
 def create_spotify_oauth():
     return SpotifyOAuth(
-            client_id="a8c8b9f2025e4249928c2c390404de89",
-            client_secret="4eae2e837eca474aa76fb9958cec2f31",
+            client_id=os.getenv("CLIENT_ID"),
+            client_secret=os.getenv("CLIENT_SECRET"),
             redirect_uri=url_for('authorize', _external=True),
             scope="user-library-read playlist-modify-public playlist-modify-private") 
