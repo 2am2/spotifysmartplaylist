@@ -65,7 +65,7 @@ def get_all_tracks():
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
 
-    return [tracklist]
+    return redirect('/')
 
 
 # Checks to see if token is valid and gets a new token if not
