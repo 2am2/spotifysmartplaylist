@@ -39,16 +39,12 @@ def get_all_tracks():
     if not authorized:
         return redirect('/')
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-
     tracklist = []
     iter = 0
-
     while iter*50 < 100:
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = iter*50)["items"]
         iter += 1
-
     tracklist = [tracklist[idx]["track"]["uri"] for idx in range(100)]
-   
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     x = 0
