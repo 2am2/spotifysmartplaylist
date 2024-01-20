@@ -16,6 +16,9 @@ def login():
     print(auth_url)
     return redirect(auth_url)
 
+@app.route('/landingpg')
+def landingpg():
+    return "This is the landing page!!"
 
 @app.route('/authorize')
 def authorize():
