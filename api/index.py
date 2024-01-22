@@ -18,7 +18,7 @@ def login():
 
 @app.route('/landingpg')
 def landingpg():
-    return "This is the landing page!!"
+    return "Your playlist, RECENT LIKES, has been updated"
 
 @app.route('/authorize')
 def authorize():
@@ -33,7 +33,7 @@ def authorize():
 def logout():
     for key in list(session.keys()):
         session.pop(key)
-    return redirect('/')
+    return "redirect('/')"
 
 @app.route('/getTracks')
 def get_all_tracks():
@@ -43,24 +43,38 @@ def get_all_tracks():
         return redirect('/')
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = []
-    iter = 0
-    while iter*50 < 100:
-        tracklist += sp.current_user_saved_tracks(limit = 50, offset = iter*50)["items"]
-        iter += 1
-    tracklist = [tracklist[idx]["track"]["uri"] for idx in range(100)]
+ 
+    #! take input here for playlist length
+    playlist_length = 100
+    iter = playlist_length/50
+    iter_floor = int(iter) 
+    count = 0
+    while count*50 < 100:
+        tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+        count += 1
+    if iter != iter_floor:
+        extra = (playlist_length - iter) % 50
+        tracklist += sp.current_user_saved_tracks(limit = extra, offset = playlist_length - extra)["items"]
+
+    tracklist = [tracklist[idx]["track"]["uri"] for idx in range(playlist_length)]
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     x = 0
+    
+    #! take input here for playlist name  
+    #! and autofill input with the name of the playlist if they've used the app b4
+    playlist_name = "100 RECENT LIKES"
     playlist_uri = ""
-    #checking if playlist exists, and getting uri
+    
+    # Checking if playlist exists, and getting uri either way
     for idx in range(len(playlists["items"])):
-        if playlists["items"][idx]["name"] == "V1 RECENT LIKES":
+        if playlists["items"][idx]["name"] == playlist_name:
             playlist = playlists["items"][idx]
             playlist_uri = playlist["uri"]
             sp.playlist_replace_items(playlist_uri,tracklist)
             x += 1
     if x == 0:
-        playlist = sp.user_playlist_create(user_id, "V1 RECENT LIKES")
+        playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
 
