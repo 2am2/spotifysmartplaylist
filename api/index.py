@@ -16,9 +16,9 @@ def login():
     print(auth_url)
     return redirect(auth_url)
 
-@app.route('/landingpg')
-def landingpg():
-    return "Your playlist, RECENT LIKES, has been updated"
+@app.route('/success')
+def success():
+    return "Your playlist, RECENT LIKES, has been updated!"
 
 @app.route('/authorize')
 def authorize():
@@ -27,7 +27,7 @@ def authorize():
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code)
     session["token_info"] = token_info
-    return redirect("/getTracks")
+    return redirect("/setPlaylist")
 
 @app.route('/logout')
 def logout():
@@ -35,7 +35,11 @@ def logout():
         session.pop(key)
     return "redirect('/')"
 
-@app.route('/getTracks')
+@app.route('/userinput')
+def userinput():
+    return "God has failed us"
+
+@app.route('/setPlaylist')
 def get_all_tracks():
     session['token_info'], authorized = get_token()
     session.modified = True
@@ -62,11 +66,10 @@ def get_all_tracks():
     x = 0
     
     #! take input here for playlist name  
-    #! and autofill input with the name of the playlist if they've used the app b4
     playlist_name = "100 RECENT LIKES"
-    playlist_uri = ""
     
     # Checking if playlist exists, and getting uri either way
+    playlist_uri = ""
     for idx in range(len(playlists["items"])):
         if playlists["items"][idx]["name"] == playlist_name:
             playlist = playlists["items"][idx]
@@ -77,8 +80,7 @@ def get_all_tracks():
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
-
-    return redirect('/landingpg')
+    return redirect('/success')
 
 
 # Checks to see if token is valid and gets a new token if not
