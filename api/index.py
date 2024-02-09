@@ -16,9 +16,13 @@ def login():
     print(auth_url)
     return redirect(auth_url)
 
-@app.route('/success')
-def success():
-    return "Your playlist, RECENT LIKES, has been updated!"
+@app.route('/success0')
+def success0():
+    return "Your playlist, 100 RECENT LIKES, has been updated!"
+
+@app.route('/success1')
+def success1():
+    return "The playlist 100 RECENT LIKES has been created!"
 
 @app.route('/authorize')
 def authorize():
@@ -76,11 +80,13 @@ def get_all_tracks():
             playlist_uri = playlist["uri"]
             sp.playlist_replace_items(playlist_uri,tracklist)
             x += 1
+            return redirect('/success0')
     if x == 0:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
-    return redirect('/success')
+        return redirect('/success1')
+    
 
 
 # Checks to see if token is valid and gets a new token if not
