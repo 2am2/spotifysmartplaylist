@@ -61,6 +61,8 @@ def get_all_tracks():
         count += 1
     
     tracklist = [tracklist[idx]["track"]["uri"] for idx in range(playlist_length)]
+    return tracklist
+
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     
