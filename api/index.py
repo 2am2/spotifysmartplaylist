@@ -1,6 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from flask import Flask, url_for, session, request, redirect
+from flask import Flask, url_for, session, request, redirect, render_template
 import time
 import os
 
@@ -29,7 +29,7 @@ def authorize():
     sp_oauth = create_spotify_oauth()
     session.clear()
     code = request.args.get('code')
-    token_info = sp_oauth.get_access_token(code)
+    token_info = sp_oauth.get_access_token(code, check_cache=False)
     session["token_info"] = token_info
     return redirect("/setPlaylist")
 
@@ -67,11 +67,10 @@ def get_all_tracks():
     tracklist = [tracklist[idx]["track"]["uri"] for idx in range(playlist_length)]
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
-    x = 0
     
     #! take input here for playlist name  
     playlist_name = "100 RECENT LIKES"
-    
+     
     # Checking if playlist exists, and getting uri either way
     playlist_uri = ""
     for idx in range(len(playlists["items"])):
@@ -79,13 +78,12 @@ def get_all_tracks():
             playlist = playlists["items"][idx]
             playlist_uri = playlist["uri"]
             sp.playlist_replace_items(playlist_uri,tracklist)
-            x += 1
             return redirect('/success0')
-    if x == 0:
-        playlist = sp.user_playlist_create(user_id, playlist_name)
-        playlist_uri = playlist["uri"]
-        sp.playlist_add_items(playlist_uri,tracklist)
-        return redirect('/success1')
+        else:
+            playlist = sp.user_playlist_create(user_id, playlist_name)
+            playlist_uri = playlist["uri"]
+            sp.playlist_add_items(playlist_uri,tracklist)
+            return redirect('/success1')
     
 
 
