@@ -52,18 +52,14 @@ def get_all_tracks():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = []
  
-    #! take input here for playlist length
+    #! take input here for playlist length TO DO
     playlist_length = 100
-    iter = playlist_length/50
-    iter_floor = int(iter) 
+    # iter = playlist_length//50
     count = 0
     while count*50 < 100:
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
         count += 1
-    if iter != iter_floor:
-        extra = (playlist_length - iter) % 50
-        tracklist += sp.current_user_saved_tracks(limit = extra, offset = playlist_length - extra)["items"]
-
+    
     tracklist = [tracklist[idx]["track"]["uri"] for idx in range(playlist_length)]
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
