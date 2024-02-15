@@ -107,7 +107,8 @@ def get_token():
     token_valid = True
     return token_info, token_valid
 
-
+#! can u use this field to specify cache location?
+#! but token info is already stored in the session??
 def create_spotify_oauth():
     return SpotifyOAuth(
             client_id=os.getenv("CLIENT_ID"),
