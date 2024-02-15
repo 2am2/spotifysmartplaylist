@@ -56,7 +56,7 @@ def get_all_tracks():
     playlist_length = 100
     # iter = playlist_length//50
     count = 0
-    return sp.current_user_saved_tracks
+    return sp.current_user_saved_tracks()["items"]
     while count*50 < 100:
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
         count += 1
