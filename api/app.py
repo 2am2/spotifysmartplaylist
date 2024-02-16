@@ -54,14 +54,19 @@ def get_all_tracks():
  
     #! take input here for playlist length TO DO
     playlist_length = 100
+    if (len(sp.current_user_saved_tracks()["items"])) < playlist_length:
+        playlist_length = (len(sp.current_user_saved_tracks()["items"]))
     # iter = playlist_length//50
-    count = 0
-    return str(len(sp.current_user_saved_tracks()["items"]))
-    while count*50 < 100:
-        tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
-        count += 1
     
-    tracklist = [tracklist[idx]["track"]["uri"] for idx in range(playlist_length)]
+    #! incorporate playlist length here to create a variable length playlist
+   # count = 0
+    #while count*50 < 100:
+        #tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+     #   count += 1
+    
+    tracklist += sp.current_user_saved_tracks(limit = 10)["items"]
+
+    tracklist = [tracklist[idx]["track"]["uri"] for idx in range(10)]
    # return tracklist
 
     user_id = sp.me()["id"]
