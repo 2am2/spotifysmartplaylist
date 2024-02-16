@@ -18,11 +18,11 @@ def login():
 
 @app.route('/success0')
 def success0():
-    return "Your playlist, 100 RECENT LIKES, has been updated!"
+    return f"Your playlist, {playlist_length} RECENT LIKES, has been updated!"
 
 @app.route('/success1')
 def success1():
-    return "The playlist 100 RECENT LIKES has been created!"
+    return f"The playlist {playlist_length} RECENT LIKES has been created!"
 
 @app.route('/authorize')
 def authorize():
@@ -55,13 +55,14 @@ def setPlaylist():
     #! take input here for playlist length TO DO
     playlist_length = 88
 
-    if (len(sp.current_user_saved_tracks()["items"])) < playlist_length:
-        playlist_length = (len(sp.current_user_saved_tracks()["items"]))
+    #! deal w edge case of length > number of saved tracks
+    #if (len(sp.current_user_saved_tracks()["items"])) < playlist_length:
+    #   playlist_length = (len(sp.current_user_saved_tracks()["items"]))
 
     iter = playlist_length//50
     extra = playlist_length - iter*50
     count = 0
-    
+
     while count < iter:
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
         count += 1
