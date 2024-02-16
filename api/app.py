@@ -53,16 +53,19 @@ def setPlaylist():
     tracklist = []
  
     #! take input here for playlist length TO DO
-    playlist_length = 100
+    playlist_length = 88
+
     if (len(sp.current_user_saved_tracks()["items"])) < playlist_length:
         playlist_length = (len(sp.current_user_saved_tracks()["items"]))
-    # iter = playlist_length//50
+
+    iter = playlist_length//50
+    extra = playlist_length - iter*50
+    count = 0
     
-    #! incorporate playlist length here to create a variable length playlist
-   # count = 0
-    #while count*50 < 100:
-        #tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
-     #   count += 1
+    while count < iter:
+        tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+        count += 1
+    tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
     
     tracklist += sp.current_user_saved_tracks(limit = 10)["items"]
 
@@ -73,20 +76,18 @@ def setPlaylist():
     playlists = sp.current_user_playlists()
     
     #! take input here for playlist name  
-    playlist_name = "100 RECENT LIKES"
+    playlist_name = f"{playlist_length} RECENT LIKES"
      
-    # Checking if playlist exists, and getting uri either way
+    # Checking if playlist exists, then create or update it
     playlist_uri = ""
     playlist_set = set()
     for idx in range(len(playlists["items"])):
         playlist_set.add(playlists["items"][idx]["name"])
-
     if playlist_name in playlist_set:
         playlist = playlists["items"][idx]
         playlist_uri = playlist["uri"]
         sp.playlist_replace_items(playlist_uri,tracklist)
         return redirect('/success0')
-    
     else:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
