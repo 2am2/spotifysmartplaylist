@@ -77,7 +77,7 @@ def setPlaylist():
      
     # Checking if playlist exists, and getting uri either way
     playlist_uri = ""
-    return "10"
+    return str(len(playlists["items"]))
     for idx in range(len(playlists["items"])):
         if playlists["items"][idx]["name"] == playlist_name:
             playlist = playlists["items"][idx]
