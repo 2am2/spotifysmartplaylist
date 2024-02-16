@@ -44,7 +44,7 @@ def userinput():
     return "God has failed us"
 
 @app.route('/setPlaylist')
-def get_all_tracks():
+def setPlaylist():
     session['token_info'], authorized = get_token()
     session.modified = True
     if not authorized:
@@ -77,6 +77,7 @@ def get_all_tracks():
      
     # Checking if playlist exists, and getting uri either way
     playlist_uri = ""
+    return "10"
     for idx in range(len(playlists["items"])):
         if playlists["items"][idx]["name"] == playlist_name:
             playlist = playlists["items"][idx]
