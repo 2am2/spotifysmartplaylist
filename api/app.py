@@ -77,23 +77,21 @@ def setPlaylist():
      
     # Checking if playlist exists, and getting uri either way
     playlist_uri = ""
-    if len(playlists["items"]) == 0:
+    playlist_set = set()
+    for idx in range(len(playlists["items"])):
+        playlist_set.add(playlists["items"][idx]["name"])
+
+    if playlist_name in playlist_set:
+        playlist = playlists["items"][idx]
+        playlist_uri = playlist["uri"]
+        sp.playlist_replace_items(playlist_uri,tracklist)
+        return redirect('/success0')
+    
+    else:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
         return redirect('/success1')
-    
-    for idx in range(len(playlists["items"])):
-        if playlists["items"][idx]["name"] == playlist_name:
-            playlist = playlists["items"][idx]
-            playlist_uri = playlist["uri"]
-            sp.playlist_replace_items(playlist_uri,tracklist)
-            return redirect('/success0')
-        else:
-            playlist = sp.user_playlist_create(user_id, playlist_name)
-            playlist_uri = playlist["uri"]
-            sp.playlist_add_items(playlist_uri,tracklist)
-            return redirect('/success1')
     
 
 
