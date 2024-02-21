@@ -54,7 +54,7 @@ def setPlaylist():
  
     #! take input here for playlist length TO DO
     playlist_length = 88
-
+    session["playlist_length"] = playlist_length
     #! deal w edge case of length > number of saved tracks
     #if (len(sp.current_user_saved_tracks()["items"])) < playlist_length:
     #   playlist_length = (len(sp.current_user_saved_tracks()["items"]))
