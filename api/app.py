@@ -18,11 +18,11 @@ def login():
 
 @app.route('/success0')
 def success0():
-    return f"Your playlist, {playlist_length} RECENT LIKES, has been updated!"
+    return "Your playlist, RECENT LIKES, has been updated!"
 
 @app.route('/success1')
 def success1():
-    return f"The playlist {playlist_length} RECENT LIKES has been created!"
+    return "The playlist RECENT LIKES has been created!"
 
 @app.route('/authorize')
 def authorize():
@@ -68,8 +68,6 @@ def setPlaylist():
         count += 1
     tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
     
-    tracklist += sp.current_user_saved_tracks(limit = 10)["items"]
-
     tracklist = [tracklist[idx]["track"]["uri"] for idx in range(10)]
    # return tracklist
 
