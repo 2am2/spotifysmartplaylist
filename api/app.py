@@ -81,10 +81,11 @@ def setPlaylist():
     # Checking if playlist exists, then create or update it
     playlist_uri = ""
 
-    return "hiiiiii!"
     playlist_set = set()
     for idx in range(len(playlists["items"])):
         playlist_set.add(playlists["items"][idx]["name"])
+        return playlist_set
+    
     if playlist_name in playlist_set:
         playlist = playlists["items"][idx]
         playlist_uri = playlist["uri"]
