@@ -54,7 +54,7 @@ def setPlaylist():
  
     #! take input here for playlist length TO DO
     playlist_length = 10
-    session["playlist_length"] = playlist_length
+    
    
     #! deal w edge case of length > number of saved tracks
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
@@ -75,10 +75,13 @@ def setPlaylist():
     playlists = sp.current_user_playlists()
     
     #! take input here for playlist name  
+    session["playlist_length"] = playlist_length
     playlist_name = f"{playlist_length} RECENT LIKES"
      
     # Checking if playlist exists, then create or update it
     playlist_uri = ""
+
+    return "hiiiiii!"
     playlist_set = set()
     for idx in range(len(playlists["items"])):
         playlist_set.add(playlists["items"][idx]["name"])
