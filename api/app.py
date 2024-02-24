@@ -55,24 +55,21 @@ def setPlaylist():
     #! take input here for playlist length TO DO
     playlist_length = 10
     session["playlist_length"] = playlist_length
-
-    return str(len(sp.current_user_saved_tracks(limit = 50)["items"]))
    
     #! deal w edge case of length > number of saved tracks
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
        playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
        tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
-    else:
-        iter = playlist_length//50
-        extra = playlist_length - iter*50
-        count = 0
+    # else:
+    #     iter = playlist_length//50
+    #     extra = playlist_length - iter*50
+    #     count = 0
 
-        while count < iter:
-            tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
-            count += 1
-        tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
-    
-   # return tracklist
+    #     while count < iter:
+    #         tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+    #         count += 1
+    #     if extra != 0:    
+    #         tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
 
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
