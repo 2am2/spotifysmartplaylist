@@ -56,7 +56,7 @@ def setPlaylist():
     playlist_length = 10
     session["playlist_length"] = playlist_length
 
-    return len(sp.current_user_saved_tracks(limit = 50)["items"])
+    return str(len(sp.current_user_saved_tracks(limit = 50)["items"]))
    
     #! deal w edge case of length > number of saved tracks
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
