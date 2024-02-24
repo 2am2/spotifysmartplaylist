@@ -55,20 +55,21 @@ def setPlaylist():
     #! take input here for playlist length TO DO
     playlist_length = 88
     session["playlist_length"] = playlist_length
+   
     #! deal w edge case of length > number of saved tracks
-    #if (len(sp.current_user_saved_tracks()["items"])) < playlist_length:
-    #   playlist_length = (len(sp.current_user_saved_tracks()["items"]))
+    if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
+       playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
+       tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
+    else:
+        iter = playlist_length//50
+        extra = playlist_length - iter*50
+        count = 0
 
-    iter = playlist_length//50
-    extra = playlist_length - iter*50
-    count = 0
-
-    while count < iter:
-        tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
-        count += 1
-    tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
+        while count < iter:
+            tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+            count += 1
+        tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
     
-    tracklist = [tracklist[idx]["track"]["uri"] for idx in range(10)]
    # return tracklist
 
     user_id = sp.me()["id"]
@@ -93,8 +94,6 @@ def setPlaylist():
         sp.playlist_add_items(playlist_uri,tracklist)
         return redirect('/success1')
     
-
-
 # Checks to see if token is valid and gets a new token if not
 def get_token():
     token_valid = False
