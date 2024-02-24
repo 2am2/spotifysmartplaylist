@@ -53,7 +53,7 @@ def setPlaylist():
     tracklist = []
  
     #! take input here for playlist length TO DO
-    playlist_length = 88
+    playlist_length = 10
     session["playlist_length"] = playlist_length
    
     #! deal w edge case of length > number of saved tracks
