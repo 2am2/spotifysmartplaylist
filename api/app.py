@@ -84,7 +84,9 @@ def setPlaylist():
     playlist_set = set()
     for idx in range(len(playlists["items"])):
         playlist_set.add(playlists["items"][idx]["name"])
-        return list(playlist_set)
+
+        #problems after this
+        return list(playlists["items"])
     
     if playlist_name in playlist_set:
         playlist = playlists["items"][idx]
