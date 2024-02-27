@@ -87,6 +87,7 @@ def setPlaylist():
             plist_exists = True
             plist_idx = idx
 
+    return tracklist
     if plist_exists:
         playlist = playlists["items"][plist_idx]
         playlist_uri = playlist["uri"]
