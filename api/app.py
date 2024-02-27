@@ -59,7 +59,7 @@ def setPlaylist():
     #! deal w edge case of length > number of saved tracks
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
        playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
-       tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]["uri"]
+       tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]["track"]
     else:
         iter = playlist_length//50
         extra = playlist_length - iter*50
