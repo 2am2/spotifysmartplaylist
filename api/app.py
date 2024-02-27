@@ -80,13 +80,15 @@ def setPlaylist():
      
     # Checking if playlist exists, then create or update it
     playlist_uri = ""
-
-    playlist_set = set()
+    plist_exists = False
+    plist_idx = -1
     for idx in range(len(playlists["items"])):
-        playlist_set.add(str(playlists["items"][idx]["name"]))
-    
-    if playlist_name in playlist_set:
-        playlist = playlists["items"][idx]
+        if playlist_name == playlists["items"][idx]["name"]:
+            plist_exists = True
+            plist_idx = idx
+
+    if plist_exists:
+        playlist = playlists["items"][plist_idx]
         playlist_uri = playlist["uri"]
         sp.playlist_replace_items(playlist_uri,tracklist)
         return redirect('/success0')
