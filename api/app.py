@@ -86,7 +86,7 @@ def setPlaylist():
         playlist_set.add(playlists["items"][idx]["name"])
 
         #problems after this
-        return playlists["items"]
+        return playlists["items"][1]
     
     if playlist_name in playlist_set:
         playlist = playlists["items"][idx]
