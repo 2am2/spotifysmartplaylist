@@ -74,8 +74,7 @@ def setPlaylist():
     playlists = sp.current_user_playlists()
     
     #! take input here for playlist name  
-    session["playlist_length"] = playlist_length
-    playlist_name = f"{playlist_length} RECENT LIKES"
+    playlist_name = "RECENT LIKES"
      
     # Checking if playlist exists, then create or update it
     playlist_uri = ""
