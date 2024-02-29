@@ -43,7 +43,7 @@ def logout():
 def userinput():
     return render_template('input.html')
 
-@app.route('/setPlaylist')
+@app.route('/setPlaylist', methods = ['POST'])
 def setPlaylist():
     session['token_info'], authorized = get_token()
     session.modified = True
@@ -54,7 +54,7 @@ def setPlaylist():
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     
-    playlist_name = "RECENT LIKES"
+    playlist_name = request.form.get('playlist_name')
      
     # Checking if playlist exists 
     # then either creating or updating it
