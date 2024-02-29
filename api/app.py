@@ -50,25 +50,6 @@ def setPlaylist():
     if not authorized:
         return redirect('/')
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-    
-    # tracklist = []
-    # playlist_length = 88
-    # if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
-    #    playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
-    #    tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
-    # else:
-    #     iter = playlist_length//50
-    #     extra = playlist_length - iter*50
-    #     count = 0
-    #     while count < iter:
-    #         tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
-    #         count += 1
-    #     if extra != 0:    
-    #         tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
-
-    # for i in range(len(tracklist)):
-    #     tracklist[i] = tracklist[i]["track"]["uri"]
-
     tracklist = get_tracklist(sp)
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
@@ -100,7 +81,7 @@ def setPlaylist():
 def get_tracklist(sp):
     #! take input here for playlist length TO DO
     tracklist = []
-    playlist_length = 88
+    playlist_length = 44
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
        playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
        tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
