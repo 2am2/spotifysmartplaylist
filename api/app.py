@@ -41,7 +41,7 @@ def logout():
 
 @app.route('/userinput')
 def userinput():
-    return "God has failed us"
+    return render_template('input.html')
 
 @app.route('/setPlaylist')
 def setPlaylist():
@@ -54,10 +54,10 @@ def setPlaylist():
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     
-    #! take input here for playlist name  
     playlist_name = "RECENT LIKES"
      
-    # Checking if playlist exists, then create or update it
+    # Checking if playlist exists 
+    # then either creating or updating it
     playlist_uri = ""
     plist_exists = False
     plist_idx = -1
@@ -79,7 +79,6 @@ def setPlaylist():
 
 
 def get_tracklist(sp):
-    #! take input here for playlist length TO DO
     tracklist = []
     playlist_length = 44
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
