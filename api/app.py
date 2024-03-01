@@ -43,7 +43,7 @@ def logout():
 def userinput():
     return render_template('input.html')
 
-@app.route('/setPlaylist', methods = ['POST'])
+@app.route('/setPlaylist', methods = ['POST', 'GET'])
 def setPlaylist():
     session['token_info'], authorized = get_token()
     session.modified = True
