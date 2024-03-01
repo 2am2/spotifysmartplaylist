@@ -54,7 +54,7 @@ def setPlaylist():
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     
-    playlist_name = request.form.get('playlist_name')
+    playlist_name = "RECENT LIKES"
      
     # Checking if playlist exists 
     # then either creating or updating it
