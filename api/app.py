@@ -21,7 +21,7 @@ def success():
     #! get created or updated status from "set playlist"
     #! get plist name from sesh
     if request.method == "POST":
-        playlist_name = session["playlist_name"]
+        #playlist_name = session["playlist_name"]
         cORu = "updated"
         return request.form.get('playlist_name')
         #return f"Your playlist, {playlist_name}, has been {cORu}!"
