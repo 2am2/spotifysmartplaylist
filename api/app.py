@@ -16,7 +16,7 @@ def login():
     print(auth_url)
     return redirect(auth_url)
 
-@app.route('/success')
+@app.route('/success', methods = ["GET", "POST"])
 def success():
     #! get created or updated status from "set playlist"
     #! get plist name from sesh
