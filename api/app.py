@@ -16,13 +16,13 @@ def login():
     print(auth_url)
     return redirect(auth_url)
 
-@app.route('/success0')
-def success0():
-    return "Your playlist, RECENT LIKES, has been updated!"
-
-@app.route('/success1')
-def success1():
-    return "The playlist RECENT LIKES has been created!"
+@app.route('/success')
+def success():
+    #! get created or updated status from "set playlist"
+    #! get plist name from sesh
+    playlist_name = request.form.get('playlist_name')
+    cORu = "updated"
+    return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 @app.route('/authorize')
 def authorize():
@@ -41,6 +41,8 @@ def logout():
 
 @app.route('/userinput')
 def userinput():
+    if request.method == "POST":
+        return redirect(url_for('success', result_id=result.id))
     return render_template('input.html')
 
 @app.route('/setPlaylist', methods = ['POST', 'GET'])
@@ -54,7 +56,8 @@ def setPlaylist():
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     
-    playlist_name = request.form.get('playlist_name')
+    playlist_name = "RECENT LIKES"
+    #request.form.get('playlist_name')
      
     # Checking if playlist exists 
     # then either creating or updating it
