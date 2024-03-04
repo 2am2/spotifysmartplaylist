@@ -23,7 +23,8 @@ def success():
     if request.method == "POST":
         playlist_name = session["playlist_name"]
         cORu = "updated"
-        return f"Your playlist, {playlist_name}, has been {cORu}!"
+        return request.form.get('playlist_name')
+        #return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 @app.route('/authorize')
 def authorize():
@@ -42,10 +43,9 @@ def logout():
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
-    session["playlist_name"] = request.form.get('playlist_name')
     if request.method == "POST":
-        #return redirect(url_for('setPlaylist'))
-        return request.form.get('playlist_name')
+        session["playlist_name"] = request.form.get('playlist_name')
+        return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
 @app.route('/setPlaylist', methods = ['POST', 'GET'])
