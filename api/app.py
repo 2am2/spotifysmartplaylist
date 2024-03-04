@@ -21,7 +21,7 @@ def success():
     #! get created or updated status from "set playlist"
     #! get plist name from sesh
     if request.method == "POST":
-        playlist_name = request.form.get('playlist_name')
+        playlist_name = session["playlist_name"]
         cORu = "updated"
         return f"Your playlist, {playlist_name}, has been {cORu}!"
 
@@ -42,6 +42,7 @@ def logout():
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
+    session["playlist_name"] = request.form.get('playlist_name')
     if request.method == "POST":
         return redirect(url_for('success'))
     return render_template('input.html')
