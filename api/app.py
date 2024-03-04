@@ -42,7 +42,7 @@ def logout():
 @app.route('/userinput')
 def userinput():
     if request.method == "POST":
-        return redirect(url_for('success', result_id=result.id))
+        return redirect(url_for('success'))
     return render_template('input.html')
 
 @app.route('/setPlaylist', methods = ['POST', 'GET'])
