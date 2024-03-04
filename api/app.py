@@ -73,12 +73,12 @@ def setPlaylist():
         playlist = playlists["items"][plist_idx]
         playlist_uri = playlist["uri"]
         sp.playlist_replace_items(playlist_uri,tracklist)
-        return redirect('/success0')
+        return redirect('/success')
     else:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
-        return redirect('/success1')
+        return redirect('/success')
 
 
 def get_tracklist(sp):
