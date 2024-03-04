@@ -44,7 +44,8 @@ def logout():
 def userinput():
     session["playlist_name"] = request.form.get('playlist_name')
     if request.method == "POST":
-        return redirect(url_for('setPlaylist'))
+        #return redirect(url_for('setPlaylist'))
+        return request.form.get('playlist_name')
     return render_template('input.html')
 
 @app.route('/setPlaylist', methods = ['POST', 'GET'])
