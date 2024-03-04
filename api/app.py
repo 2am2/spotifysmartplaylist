@@ -43,8 +43,8 @@ def logout():
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
+    session["playlist_name"] = request.form.get('playlist_name')
     if request.method == "POST":
-        session["playlist_name"] = request.form.get('playlist_name')
         return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
