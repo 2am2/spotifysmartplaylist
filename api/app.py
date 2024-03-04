@@ -20,9 +20,10 @@ def login():
 def success():
     #! get created or updated status from "set playlist"
     #! get plist name from sesh
-    playlist_name = request.form('playlist_name')
-    cORu = "updated"
-    return f"Your playlist, {playlist_name}, has been {cORu}!"
+    if request.method == "POST":
+        playlist_name = request.form.get('playlist_name')
+        cORu = "updated"
+        return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 @app.route('/authorize')
 def authorize():
