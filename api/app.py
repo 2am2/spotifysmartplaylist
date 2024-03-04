@@ -32,7 +32,7 @@ def authorize():
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code, check_cache=False)
     session["token_info"] = token_info
-    return redirect("/setPlaylist")
+    return redirect("/userinput")
 
 @app.route('/logout')
 def logout():
@@ -44,7 +44,7 @@ def logout():
 def userinput():
     session["playlist_name"] = request.form.get('playlist_name')
     if request.method == "POST":
-        return redirect(url_for('success'))
+        return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
 @app.route('/setPlaylist', methods = ['POST', 'GET'])
@@ -75,12 +75,11 @@ def setPlaylist():
         playlist = playlists["items"][plist_idx]
         playlist_uri = playlist["uri"]
         sp.playlist_replace_items(playlist_uri,tracklist)
-        return redirect('/success')
     else:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
-        return redirect('/success')
+    return redirect('/success')
 
 
 def get_tracklist(sp):
