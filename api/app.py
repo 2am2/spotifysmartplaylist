@@ -39,7 +39,7 @@ def logout():
         session.pop(key)
     return "redirect('/')"
 
-@app.route('/userinput')
+@app.route('/userinput', methods = ['GET','POST'])
 def userinput():
     if request.method == "POST":
         return redirect(url_for('success'))
