@@ -1,9 +1,9 @@
-# spotifysmartplaylist
+# **spotifysmartplaylist**
 
-## currently at v1.0
-## by following the vercel link, you can generate a playlist of your last 88 liked songs
+## **v1.0**
+## Currently, vercel link will generate playlist of 88 most recently liked songs
 
-## Future Features
+## **Future Features**
 ### Auto update plist, user defined plist length and name, add recommended tracks to plist
 
 #### This app is intended to get your most recently liked songs and add them to a playlist, so you can save the songs you actually listen to
