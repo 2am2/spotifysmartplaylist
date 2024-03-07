@@ -1,6 +1,4 @@
-# **spotifysmartplaylist**
-
-## **v1.0**
+# **spotifysmartplaylist** **v1.0**
 ## Currently, vercel link will generate playlist of 88 most recently liked songs
 
 ## **Future Features**
