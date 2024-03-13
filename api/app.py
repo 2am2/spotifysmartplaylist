@@ -86,7 +86,7 @@ def success():
 
 def get_tracklist(sp):
     tracklist = []
-    playlist_length = 44
+    playlist_length = 88
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
        playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
        tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
