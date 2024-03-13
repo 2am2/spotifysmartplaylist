@@ -16,15 +16,6 @@ def login():
     print(auth_url)
     return redirect(auth_url)
 
-@app.route('/success', methods = ["GET", "POST"])
-def success():
-    #! get created or updated status from "set playlist"
-    #! get plist name from sesh
-    
-    if request.method == "POST":
-        playlist_name = session["playlist_name"]
-        cORu = "updated"
-        return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 @app.route('/authorize')
 def authorize():
@@ -43,8 +34,8 @@ def logout():
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
-    session["playlist_name"] = request.form.get('playlist_name')
     if request.method == "POST":
+        session["playlist_name"] = request.form.get('playlist_name')
         return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
@@ -81,6 +72,16 @@ def setPlaylist():
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
     return redirect('/success')
+
+@app.route('/success', methods = ["GET", "POST"])
+def success():
+    #! get created or updated status from "set playlist"
+    #! get plist name from sesh
+    
+    if request.method == "POST":
+        playlist_name = session["playlist_name"]
+        cORu = "updated"
+        return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 
 def get_tracklist(sp):
