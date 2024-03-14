@@ -24,7 +24,7 @@ def authorize():
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code, check_cache=False)
     session["token_info"] = token_info
-    return redirect("/userinput")
+    return redirect("/setPlaylist")
 
 @app.route('/logout')
 def logout():
