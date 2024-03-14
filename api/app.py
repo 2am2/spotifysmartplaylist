@@ -50,8 +50,7 @@ def setPlaylist():
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     
-    playlist_name = "RECENT LIKES"
-    #request.form.get('playlist_name')
+    playlist_name = session["playlist_name"]
      
     # Checking if playlist exists 
     # then either creating or updating it
@@ -78,10 +77,10 @@ def success():
     #! get created or updated status from "set playlist"
     #! get plist name from sesh
     
-   # if request.method == "POST":
-    playlist_name = "hiii" #session["playlist_name"]
-    cORu = "updated"
-    return f"Your playlist, {playlist_name}, has been {cORu}!"
+    if request.method == "POST":
+        playlist_name = session["playlist_name"]
+        cORu = "updated"
+        return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 
 def get_tracklist(sp):
