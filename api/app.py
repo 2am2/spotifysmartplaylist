@@ -76,11 +76,9 @@ def setPlaylist():
 def success():
     #! get created or updated status from "set playlist"
     #! get plist name from sesh
-    
-    if request.method == "POST":
-        playlist_name = session["playlist_name"]
-        cORu = "updated"
-        return f"Your playlist, {playlist_name}, has been {cORu}!"
+    playlist_name = session["playlist_name"]
+    cORu = "updated"
+    return f"Your playlist, {playlist_name}, has been {cORu}!"
 
 
 def get_tracklist(sp):
