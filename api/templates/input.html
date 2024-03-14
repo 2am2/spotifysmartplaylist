@@ -1,3 +1,4 @@
+{% extends "maintemp.html" %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,7 +6,7 @@
 </head>
 
 <body>
-
+{% block content %}
 <h1> Put your playlist's name and length here! </h1>
 
 <form action = /userinput method = "post">
@@ -15,7 +16,7 @@
 <input type="text" name = "playlist_length" value = "100"><br>    
 <input type="submit" value="make it!">
 </form>
-
+{% endblock %}
 </body>
 
 </html> 
