@@ -61,24 +61,26 @@ def setPlaylist():
         if playlist_name == playlists["items"][idx]["name"]:
             plist_exists = True
             plist_idx = idx
-
+    c_u = "?"
     if plist_exists:
         playlist = playlists["items"][plist_idx]
         playlist_uri = playlist["uri"]
         sp.playlist_replace_items(playlist_uri,tracklist)
+        c_u = "updated"
     else:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         playlist_uri = playlist["uri"]
         sp.playlist_add_items(playlist_uri,tracklist)
+        c_u = "created"
+    session["c_u"] = c_u
     return redirect('/success')
 
 @app.route('/success', methods = ["GET", "POST"])
 def success():
     #! get created or updated status from "set playlist"
-    #! get plist name from sesh
     playlist_name = session["playlist_name"]
-    cORu = "updated"
-    return f"Your playlist, {playlist_name}, has been {cORu}!"
+    c_u = session["c_u"]
+    return f"Your playlist, {playlist_name}, has been {c_u}!"
 
 
 def get_tracklist(sp):
