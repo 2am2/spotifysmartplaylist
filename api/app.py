@@ -80,8 +80,9 @@ def success():
     #! get created or updated status from "set playlist"
     playlist_name = session["playlist_name"]
     c_u = session["c_u"]
-    return render_template("success.html")
-    #return f"Your playlist, {playlist_name}, has been {c_u}!"
+    msg = f"Your playlist, {playlist_name}, has been {c_u}!"
+    return render_template("success.html", msg = msg)
+    
 
 
 def get_tracklist(sp):
