@@ -40,6 +40,7 @@ def userinput():
         return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
+
 @app.route('/setPlaylist', methods = ['POST', 'GET'])
 def setPlaylist():
     session['token_info'], authorized = get_token()
@@ -50,9 +51,9 @@ def setPlaylist():
     tracklist = get_tracklist(sp)
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
-    
+
     playlist_name = session["playlist_name"]
-     
+
     # Checking if playlist exists 
     # then either creating or updating it
     playlist_uri = ""
@@ -89,6 +90,7 @@ def success():
 def get_tracklist(sp):
     tracklist = []
     playlist_length = session["playlist_length"]
+
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
        playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
        tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
