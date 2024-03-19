@@ -36,7 +36,7 @@ def logout():
 def userinput():
     if request.method == "POST":
         session["playlist_name"] = request.form.get('playlist_name')
-        session["playlist_length"] = request.form.get('playlist_length')
+        session["playlist_length"] = int(request.form.get('playlist_length'))
         return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
