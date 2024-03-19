@@ -36,6 +36,7 @@ def logout():
 def userinput():
     if request.method == "POST":
         session["playlist_name"] = request.form.get('playlist_name')
+        session["playlist_length"] = request.form.get('playlist_length')
         return redirect(url_for('setPlaylist'))
     return render_template('input.html')
 
@@ -87,7 +88,7 @@ def success():
 
 def get_tracklist(sp):
     tracklist = []
-    playlist_length = 88
+    playlist_length = session["playlist_length"]
     if (len(sp.current_user_saved_tracks(limit = 50)["items"])) < 50:
        playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
        tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
