@@ -1,8 +1,9 @@
+import time
+import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
-import time
-import os
+
 
 app = Flask(__name__)
 
@@ -101,7 +102,6 @@ def get_tracklist(sp):
             count += 1
         if extra != 0:    
             tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
-    
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
 
@@ -113,7 +113,7 @@ def get_token():
     token_info = session.get("token_info", {})
 
     # Checking if the session already has a token stored
-    if not (session.get('token_info', False)):
+    if not session.get('token_info', False):
         token_valid = False
         return token_info, token_valid
 
@@ -122,7 +122,7 @@ def get_token():
     is_token_expired = session.get('token_info').get('expires_at') - now < 60
 
     # Refreshing token if it has expired
-    if (is_token_expired):
+    if is_token_expired:
         sp_oauth = create_spotify_oauth()
         token_info = sp_oauth.refresh_access_token(session.get('token_info').get('refresh_token'))
 
