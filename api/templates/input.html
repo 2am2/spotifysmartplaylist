@@ -7,15 +7,15 @@
 
 <body>
 {% block content %}
-<h1> Put your playlist's name and length here! </h1>
+<h2> Input your playlist's name, length, and how often it should update!</h2>
 
 <form action = /userinput method = "post">
 <label for="playlist_name">Playlist name!</label><br>
 <input type="text" name="playlist_name" value = "RECENT LIKES :)"><br><br>
 <label for="playlist_length">Playlist length!! (Max 100) </label><br>
-<input type="number" name = "playlist_length" value = "100"><br>    
+<input type="number" name = "playlist_length" value = "100"><br><br>    
 <label for="update_frequency">Update it every __ hour(s) </label><br>
-<input type="number" name = "update_frequency" value = "4"><br> 
+<input type="number" name = "update_frequency" value = "4"><br><br> 
 <input type="submit" value="make it!">
 </form>
 {% endblock %}
