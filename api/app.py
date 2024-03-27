@@ -33,6 +33,10 @@ def logout():
         session.pop(key)
     return "redirect('/')"
 
+@app.route('/aboutme')
+def aboutme():
+    return render_template('aboutme.html')
+
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
     if request.method == "POST":
