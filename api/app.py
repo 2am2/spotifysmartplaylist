@@ -27,6 +27,10 @@ def authorize():
     session["token_info"] = token_info
     return redirect("/userinput")
 
+@app.route('/stop')
+def stop():
+    return "placeholder until u can actually stop plist updates"
+
 @app.route('/logout')
 def logout():
     for key in list(session.keys()):
@@ -36,6 +40,7 @@ def logout():
 @app.route('/aboutme')
 def aboutme():
     return render_template('aboutme.html')
+
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
