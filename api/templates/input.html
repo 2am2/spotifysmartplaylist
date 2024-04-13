@@ -8,6 +8,11 @@
 <body>
 {% block content %}
 <h2> Input your playlist's name, length, and how often it should update!</h2>
+<h4> 
+    This playlist will pull up to 100 of your most recently liked tracks on Spotify<br>
+    Great for situations where you don't have data or wifi!<br>
+    If you recreate your playlist under a different name, you'll have to save it to your phone again!<br>
+</h4>
     <form action = /userinput method = "post">
     <label for="playlist_name">Playlist name!</label><br>
     <input type="text" name="playlist_name" value = "RECENT LIKES :)"><br><br>
