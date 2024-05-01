@@ -105,14 +105,16 @@ def get_tracklist(sp):
         playlist_length = (len(sp.current_user_saved_tracks(limit = 50)["items"]))
         tracklist += sp.current_user_saved_tracks(limit = playlist_length)["items"]
     else:
-        iter = playlist_length//50
+        divs = playlist_length//50
         extra = playlist_length % 50
-        count = 0
-        while count < iter:
-            tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+        count = -1
+        while count < divs:
             count += 1
-        if extra != 0:    
+            tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
+        if extra != 0:
+            return "panda1"
             tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
+    return "panda2"
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
 
