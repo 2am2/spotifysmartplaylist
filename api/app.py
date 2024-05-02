@@ -114,9 +114,10 @@ def get_tracklist(sp):
         if extra != 0:
             return "panda1"
             tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
-    return "panda2"
+    
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
+        return "panda2"
 
     return tracklist
 
