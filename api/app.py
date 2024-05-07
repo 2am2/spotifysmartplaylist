@@ -3,7 +3,7 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 
 app = Flask(__name__)
@@ -145,7 +145,7 @@ def get_token():
 #! can u use this field to specify cache location?
 #! but token info is already stored in the session??
 def create_spotify_oauth():
-    load_dotenv()
+    #load_dotenv()
     return SpotifyOAuth(
             client_id=os.getenv("CLIENT_ID"),
             client_secret=os.getenv("CLIENT_SECRET"),
