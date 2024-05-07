@@ -3,6 +3,7 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
+from dotenv import load_dotenv
 
 
 app = Flask(__name__)
@@ -107,17 +108,15 @@ def get_tracklist(sp):
     else:
         divs = playlist_length//50
         extra = playlist_length % 50
-        count = -1
+        count = 0
         while count < divs:
             count += 1
             tracklist += sp.current_user_saved_tracks(limit = 50, offset = count*50)["items"]
         if extra != 0:
             tracklist += sp.current_user_saved_tracks(limit = extra, offset = count*50)["items"]
-            return "panda1"
     
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
-        return "panda2"
 
     return tracklist
 
@@ -146,6 +145,7 @@ def get_token():
 #! can u use this field to specify cache location?
 #! but token info is already stored in the session??
 def create_spotify_oauth():
+    load_dotenv()
     return SpotifyOAuth(
             client_id=os.getenv("CLIENT_ID"),
             client_secret=os.getenv("CLIENT_SECRET"),
