@@ -3,7 +3,7 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
 #from dotenv import load_dotenv
 from datetime import datetime
 
@@ -16,17 +16,17 @@ app.secret_key = 'SOMETHING-RANDOM'
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 
 #init db
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
 #init db model
-class Listeners(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(50), unique = True)
-    playlist_name = db.Column(db.String(50))
-    playlist_length = db.Column(db.Integer)
+# class Listeners(db.Model):
+#     id = db.Column(db.Integer, primary_key = True)
+#     username = db.Column(db.String(50), unique = True)
+#     playlist_name = db.Column(db.String(50))
+#     playlist_length = db.Column(db.Integer)
     #date_added = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
 
-    def __repr__(self):
-        return '<name %r>' % self.name
+    # def __repr__(self):
+    #     return '<name %r>' % self.name
 
 @app.route('/')
 def login():
@@ -198,7 +198,7 @@ def get_token():
     return token_info, token_valid
 
 def create_spotify_oauth():
-    #load_dotenv()
+    # load_dotenv()
     return SpotifyOAuth(
             client_id=os.getenv("CLIENT_ID"),
             client_secret=os.getenv("CLIENT_SECRET"),
