@@ -3,11 +3,9 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
-#from flask_sqlalchemy import SQLAlchemy
-#from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 from datetime import datetime
-
-
 
 app = Flask(__name__)
 
@@ -16,17 +14,20 @@ app.secret_key = 'SOMETHING-RANDOM'
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 
 #init db
-# db = SQLAlchemy(app)
+db = SQLAlchemy(app)
 #init db model
-# class Listeners(db.Model):
-#     id = db.Column(db.Integer, primary_key = True)
-#     username = db.Column(db.String(50), unique = True)
-#     playlist_name = db.Column(db.String(50))
-#     playlist_length = db.Column(db.Integer)
+class Listeners(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(50) )#unique = True)
+    playlist_name = db.Column(db.String(50))
+    playlist_length = db.Column(db.Integer)
     #date_added = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
 
-    # def __repr__(self):
-    #     return '<name %r>' % self.name
+class Tracks(db.Model):
+    username = db.Column(db.String(50))
+    track_id = db.Column(db.String(100), unique = True, primary_key = True)
+
+
 
 @app.route('/')
 def login():
@@ -65,6 +66,12 @@ def userinput():
     if request.method == "POST":
         session["playlist_name"] = request.form.get('playlist_name')
         session["playlist_length"] = int(request.form.get('playlist_length'))
+        session['token_info'], authorized = get_token()
+        sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+        if not db.session.execute(db.select(Listeners).where(Listeners.username == sp.me()['id'])):
+            listener = Listeners(username = sp.me()['id'], playlist_name = request.form.get('playlist_name'), playlist_length = int(request.form.get('playlist_length')))
+            db.session.add(listener)
+            db.session.commit()
         return redirect(url_for('setPlaylist1'))
     return render_template('input.html')
 
@@ -85,7 +92,6 @@ def setPlaylist1():
 @app.route('/loadingplaylist', methods = ["GET", "POST"])
 def loadingplaylist():
     session['token_info'], authorized = get_token()
-    
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = get_tracklist(sp)
     
@@ -94,7 +100,8 @@ def loadingplaylist():
     if session['offset'] == session['playlist_length']:
         return redirect('/setPlaylist2')
     return redirect('/loadingplaylist')
-   
+
+
 @app.route('/setPlaylist2', methods = ['POST', 'GET'])
 def setPlaylist2():
     session['token_info'], authorized = get_token()   
@@ -126,6 +133,7 @@ def setPlaylist2():
     session["c_u"] = c_u
     return redirect('/loadingplaylist2')
 
+
 @app.route('/loadingplaylist2', methods = ["GET", "POST"])
 def loadingplaylist2():
     session['token_info'], authorized = get_token()
@@ -144,8 +152,6 @@ def loadingplaylist2():
     session['playlist_length'] -= 100
     return redirect('/loadingplaylist2')
 
-    
-
 
 @app.route('/success', methods = ["GET", "POST"])
 def success():
@@ -161,9 +167,10 @@ def get_tracklist(sp):
     ldiv = session['div']
     extra = session['extra']
     tracklist = []
-
+    #!! what if the length of the final tracklist is less than the playlist length??
     if (len(sp.current_user_saved_tracks(limit = 50,)["items"])) < 50:
         tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
+        loffset = len(tracklist)
     elif (session['extra'] == (session['playlist_length'] - session['offset']) ):
         tracklist += sp.current_user_saved_tracks(limit = extra, offset = loffset)["items"] 
         loffset += session['playlist_length'] % 50
@@ -178,6 +185,7 @@ def get_tracklist(sp):
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
     return tracklist
+
 
 # Checks to see if token is valid and gets a new token if not
 def get_token():
@@ -198,7 +206,7 @@ def get_token():
     return token_info, token_valid
 
 def create_spotify_oauth():
-    # load_dotenv()
+    load_dotenv()
     return SpotifyOAuth(
             client_id=os.getenv("CLIENT_ID"),
             client_secret=os.getenv("CLIENT_SECRET"),
