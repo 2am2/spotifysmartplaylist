@@ -21,11 +21,10 @@ class Listeners(db.Model):
     username = db.Column(db.String(50) )#unique = True)
     playlist_name = db.Column(db.String(50))
     playlist_length = db.Column(db.Integer)
-    #date_added = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
 
 class Tracks(db.Model):
     username = db.Column(db.String(50))
-    track_id = db.Column(db.String(100), unique = True, primary_key = True)
+    track_id = db.Column(db.String(100), primary_key = True)
 
 
 
@@ -75,7 +74,8 @@ def userinput():
         return redirect(url_for('setPlaylist1'))
     return render_template('input.html')
 
-
+#need to get around spotify's 100 song request limit
+#thus, the following 4 routes
 @app.route('/setPlaylist1', methods = ['POST', 'GET'])
 def setPlaylist1():
     session['token_info'], authorized = get_token()
@@ -161,7 +161,7 @@ def success():
     msg = f"Your playlist, {playlist_name}, has been {c_u}!"
     return render_template("success.html", msg = msg)
     
-
+#gets up to 100 tracks
 def get_tracklist(sp):
     loffset = session['offset']
     ldiv = session['div']
@@ -184,6 +184,10 @@ def get_tracklist(sp):
     session['offset'] = loffset
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
+        track = Tracks(username = sp.me()['id'], track_id = tracklist[i])
+        db.session.add(track)
+    db.session.commit()
+        
     return tracklist
 
 
