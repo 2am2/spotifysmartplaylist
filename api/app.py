@@ -15,6 +15,8 @@ app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 
 #init db
 db = SQLAlchemy(app)
+app.app_context().push()
+ 
 #init db model
 class Listeners(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -23,8 +25,9 @@ class Listeners(db.Model):
     playlist_length = db.Column(db.Integer)
 
 class Tracks(db.Model):
+    pk = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(50))
-    track_id = db.Column(db.String(100), primary_key = True)
+    track_id = db.Column(db.String(100))
 
 
 
@@ -67,7 +70,8 @@ def userinput():
         session["playlist_length"] = int(request.form.get('playlist_length'))
         session['token_info'], authorized = get_token()
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-        if not db.session.execute(db.select(Listeners).where(Listeners.username == sp.me()['id'])):
+        
+        if not Listeners.query.filter_by(username = sp.me()["id"]).first():
             listener = Listeners(username = sp.me()['id'], playlist_name = request.form.get('playlist_name'), playlist_length = int(request.form.get('playlist_length')))
             db.session.add(listener)
             db.session.commit()
@@ -86,6 +90,13 @@ def setPlaylist1():
     session['div'] = session['playlist_length']//50
     session['extra'] = session['playlist_length']%50
     session['tracklist'] = []
+    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+   
+   # delete not working
+    todelete = db.session.execute(db.query(Tracks).filter(Tracks.username == sp.me()['id']))
+    db.session.delete(todelete)
+    db.session.commit()
+ 
     return redirect('/loadingplaylist')
 
 
@@ -139,16 +150,13 @@ def loadingplaylist2():
     session['token_info'], authorized = get_token()
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = (session['tracklist'])
-    ltracklist = []
-    
+    ltracklist = [] 
+    #changed stuff down here and it broke
+    for i in range(max(100, session['playlist_length'])):
+            ltracklist.append(tracklist[i])
+    sp.playlist_add_items(session['playlist_uri'],ltracklist)        
     if session['playlist_length'] <= 100:
-        for i in range(session['playlist_length']):
-            ltracklist.append(tracklist[i])
-        sp.playlist_add_items(session['playlist_uri'],ltracklist)
-        return redirect('/success')
-    for i in range(100):
-            ltracklist.append(tracklist[i])
-    sp.playlist_add_items(session['playlist_uri'],ltracklist)
+                return redirect('/success')
     session['playlist_length'] -= 100
     return redirect('/loadingplaylist2')
 
