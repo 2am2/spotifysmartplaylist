@@ -4,6 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import select, delete
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -16,7 +17,7 @@ app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 #init db
 db = SQLAlchemy(app)
 app.app_context().push()
- 
+
 #init db model
 class Listeners(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -28,6 +29,7 @@ class Tracks(db.Model):
     pk = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(50))
     track_id = db.Column(db.String(100))
+    #position = db.Column(db.Integer)
 
 
 
@@ -70,9 +72,11 @@ def userinput():
         session["playlist_length"] = int(request.form.get('playlist_length'))
         session['token_info'], authorized = get_token()
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-        
-        if not Listeners.query.filter_by(username = sp.me()["id"]).first():
-            listener = Listeners(username = sp.me()['id'], playlist_name = request.form.get('playlist_name'), playlist_length = int(request.form.get('playlist_length')))
+        session['username'] = sp.me()["id"]
+        if not Listeners.query.filter_by(username = session['username']).first():
+            listener = Listeners(username = session['username'], playlist_name = request.form.get('playlist_name'), playlist_length = int(request.form.get('playlist_length')))
+            #session is being used in two ways, by flask
+            #and by sql. what do i do? why it work?
             db.session.add(listener)
             db.session.commit()
         return redirect(url_for('setPlaylist1'))
@@ -87,16 +91,19 @@ def setPlaylist1():
     if not authorized:
         return redirect('/')
     session['offset'] = 0
-    session['div'] = session['playlist_length']//50
     session['extra'] = session['playlist_length']%50
     session['tracklist'] = []
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-   
+
    # delete not working
-    todelete = db.session.execute(db.query(Tracks).filter(Tracks.username == sp.me()['id']))
-    db.session.delete(todelete)
+   # query = (db.select(Tracks)).where(Tracks.username == session['username'])
+    #todelete = db.session.execute(query)
+    #oldtracks = Tracks.query.get_or_404(session['username'])
+    #db.session.delete(oldtracks)
+
+
     db.session.commit()
- 
+
     return redirect('/loadingplaylist')
 
 
@@ -105,9 +112,7 @@ def loadingplaylist():
     session['token_info'], authorized = get_token()
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = get_tracklist(sp)
-    
     session['tracklist'] += tracklist
-    
     if session['offset'] == session['playlist_length']:
         return redirect('/setPlaylist2')
     return redirect('/loadingplaylist')
@@ -115,12 +120,12 @@ def loadingplaylist():
 
 @app.route('/setPlaylist2', methods = ['POST', 'GET'])
 def setPlaylist2():
-    session['token_info'], authorized = get_token()   
+    session['token_info'], authorized = get_token()
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     user_id = sp.me()["id"]
     playlists = sp.current_user_playlists()
     playlist_name = session["playlist_name"]
-    # Checking if playlist exists 
+    # Checking if playlist exists
     # then either creating or updating it
     playlist_uri = ""
     plist_exists = False
@@ -133,13 +138,15 @@ def setPlaylist2():
     if plist_exists:
         playlist = playlists["items"][plist_idx]
         c_u = "updated"
+        tracklist = session['tracklist']
+        sp.playlist_replace_items(playlist["uri"],[tracklist[1]])
+        sp.playlist_remove_all_occurrences_of_items(playlist["uri"],[tracklist[1]])
     else:
         playlist = sp.user_playlist_create(user_id, playlist_name)
         c_u = "created"
-    session['playlist_uri'] = playlist["uri"] 
-    tracklist = session['tracklist']
-    sp.playlist_replace_items(playlist["uri"],[tracklist[1]])
-    sp.playlist_remove_all_occurrences_of_items(playlist["uri"],[tracklist[1]])
+    session['playlist_uri'] = playlist["uri"]
+
+
     print(sp.playlist_tracks(playlist["uri"],limit = 50))
     session["c_u"] = c_u
     return redirect('/loadingplaylist2')
@@ -150,11 +157,11 @@ def loadingplaylist2():
     session['token_info'], authorized = get_token()
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = (session['tracklist'])
-    ltracklist = [] 
-    #changed stuff down here and it broke
-    for i in range(max(100, session['playlist_length'])):
+    ltracklist = []
+
+    for i in range(min(100, session['playlist_length'])):
             ltracklist.append(tracklist[i])
-    sp.playlist_add_items(session['playlist_uri'],ltracklist)        
+    sp.playlist_add_items(session['playlist_uri'],ltracklist)
     if session['playlist_length'] <= 100:
                 return redirect('/success')
     session['playlist_length'] -= 100
@@ -168,11 +175,10 @@ def success():
     c_u = session["c_u"]
     msg = f"Your playlist, {playlist_name}, has been {c_u}!"
     return render_template("success.html", msg = msg)
-    
+
 #gets up to 100 tracks
 def get_tracklist(sp):
     loffset = session['offset']
-    ldiv = session['div']
     extra = session['extra']
     tracklist = []
     #!! what if the length of the final tracklist is less than the playlist length??
@@ -180,22 +186,19 @@ def get_tracklist(sp):
         tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
         loffset = len(tracklist)
     elif (session['extra'] == (session['playlist_length'] - session['offset']) ):
-        tracklist += sp.current_user_saved_tracks(limit = extra, offset = loffset)["items"] 
+        tracklist += sp.current_user_saved_tracks(limit = extra, offset = loffset)["items"]
         loffset += session['playlist_length'] % 50
     else: 
-        for count in range(2):
-            sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-            tracklist += sp.current_user_saved_tracks(limit = 50, offset = loffset)["items"] 
-            loffset += 50 
-    ldiv = ldiv - 2
-    session['div'] = ldiv 
+        sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+        tracklist += sp.current_user_saved_tracks(limit = 50, offset = loffset)["items"]
+        loffset += 50
     session['offset'] = loffset
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
-        track = Tracks(username = sp.me()['id'], track_id = tracklist[i])
+        track = Tracks(username = session['username'], track_id = tracklist[i])
         db.session.add(track)
     db.session.commit()
-        
+
     return tracklist
 
 
@@ -223,4 +226,4 @@ def create_spotify_oauth():
             client_id=os.getenv("CLIENT_ID"),
             client_secret=os.getenv("CLIENT_SECRET"),
             redirect_uri=url_for('authorize', _external=True),
-            scope="user-library-read playlist-modify-public playlist-modify-private") 
+            scope="user-library-read playlist-modify-public playlist-modify-private")
