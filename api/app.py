@@ -96,10 +96,11 @@ def setPlaylist1():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
 
    # delete not working
-   # query = (db.select(Tracks)).where(Tracks.username == session['username'])
-    #todelete = db.session.execute(query)
-    #oldtracks = Tracks.query.get_or_404(session['username'])
-    #db.session.delete(oldtracks)
+    query = (db.select(Tracks)).first()
+    todelete = db.session.execute(query)
+    #oldtracks = Tracks.query.filter_by(username == session['username'])
+    print(todelete)
+    db.session.delete(todelete)
 
 
     db.session.commit()
@@ -158,7 +159,6 @@ def loadingplaylist2():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = (session['tracklist'])
     ltracklist = []
-
     for i in range(min(100, session['playlist_length'])):
             ltracklist.append(tracklist[i])
     sp.playlist_add_items(session['playlist_uri'],ltracklist)
