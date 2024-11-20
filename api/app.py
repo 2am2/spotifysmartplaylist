@@ -42,6 +42,7 @@ class Tracks(Base):
 class ChangeTracks(Base):
     __tablename__ = "changetracks"
     pkid: Mapped[int] = mapped_column(primary_key=True)
+    userid: Mapped[str] = mapped_column(ForeignKey("users.userid"))
     trackid: Mapped[str] = mapped_column(String(50))
     add_or_del: Mapped[bool] = mapped_column()
 
@@ -143,12 +144,12 @@ def loadingplaylist2():
 
     for trackid in newset:
         if trackid not in oldset:
-            changetrack = ChangeTracks(trackid = trackid, add_or_del = 1)
+            changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 1)
             db.session.add(changetrack)
             db.session.commit()
     for trackid in oldset:
         if trackid not in newset:
-            changetrack = ChangeTracks(trackid = trackid, add_or_del = 0)
+            changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 0)
             db.session.add(changetrack)
             db.session.commit()
    
@@ -161,7 +162,9 @@ def loadingplaylist2():
     stmt = update(Tracks).where(Tracks.userid == session['userid']).values(isnew = False)
     db.session.execute(stmt)
     db.session.commit()
+    return redirect('/loadingplaylist3')
 
+@app.route('/loadingplaylist3', methods = ["GET", "POST"])
 def loadingplaylist3():
 
     session['token_info'], authorized = get_token()
@@ -169,13 +172,31 @@ def loadingplaylist3():
 
     addtracks = []
     deletetracks = []
+    stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
+    db_result = db.session.execute(stmt).scalars()
     
+    i = 0
+    for track in db_result:
+        if i == 100:
+            break
+        i += 1
+        if track.add_or_del == 1:
+            addtracks.append(track.trackid)
+        else:
+            deletetracks.append(track.trackid)
+        stmt = delete(ChangeTracks).where(ChangeTracks.trackid == track.trackid).where(ChangeTracks.userid == session['userid'])
+        db.session.execute(stmt)
+    db.session.commit()
+        
+
     if addtracks:
         sp.playlist_add_items(session['playlist_uri'], addtracks)
     if deletetracks:
         sp.playlist_remove_all_occurrences_of_items(session['playlist_uri'], deletetracks)
 
-    if (len(addtracks) + len(deletetracks)) < 100:
+
+    stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
+    if not db.session.execute(stmt).first():
         return redirect('/success')
     return redirect('/loadingplaylist3')
 
