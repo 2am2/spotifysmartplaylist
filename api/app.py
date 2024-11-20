@@ -115,8 +115,7 @@ def loadingplaylist2():
 @app.route('/success', methods = ["GET", "POST"])
 def success():
     #! get created or updated status from "set playlist"
-    playlist_name = session["playlist_name"]
-    msg = f"Your playlist, {playlist_name}, is all set!"
+    msg = f"Your playlist, {session["playlist_name"]}, is all set!"
     return render_template("success.html", msg = msg)
 
 
@@ -157,13 +156,16 @@ def check_get_playlist_uri():
     
     for idx in range(len(playlists["items"])):
         #! change playist name here if different
+        playlist_exists = 0
         if session["playlist_uri"] == playlists["items"][idx]["uri"]:
             playlist_uri = playlists["items"][idx]["uri"]
+            playlist_exists = 1
             if session['playlist_name'] != playlists["items"][idx]["name"]:
                 sp.playlist_change_details(playlist_uri, session['playlist_name'])
                 stmt = update(Users).where(Users.userid == session['userid']).values(playlist_name = session['playlist_name'])
                 db.session.execute(stmt)
-        else:
+                
+        if not playlist_exists:
             playlist_uri = sp.user_playlist_create(session['userid'], session["playlist_name"])["uri"]
     return playlist_uri
 
