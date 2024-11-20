@@ -39,6 +39,12 @@ class Tracks(Base):
     userid: Mapped[str] = mapped_column(ForeignKey("users.userid"))
     isnew: Mapped[bool] = mapped_column(default = True)
 
+class ChangeTracks(Base):
+    __tablename__ = "changetracks"
+    pkid: Mapped[int] = mapped_column(primary_key=True)
+    userid: Mapped[str] = mapped_column(ForeignKey("users.userid"))
+    trackid: Mapped[str] = mapped_column(String(50))
+    add_or_del: Mapped[bool] = mapped_column()
 
 with app.app_context():
     db.create_all()
@@ -107,9 +113,78 @@ def loadingplaylist():
     return redirect('/loadingplaylist2')
 
 def loadingplaylist2():
+
+    stmt = select(Tracks).where(Tracks.userid == session['userid']).where(Tracks.isnew == True)
+    newtracks = db.session.execute(stmt).scalars()
+
+    stmt = select(Tracks).where(Tracks.userid == session['userid']).where(Tracks.isnew == False)
+    oldtracks = db.session.execute(stmt).scalars()
+
+    newset = set()
+    oldset = set()
+
+    for track in oldtracks: 
+        oldset.add(track.trackid)
+    for track in newtracks: 
+        newset.add(track.trackid)
+
+    for trackid in newset:
+        if trackid not in oldset:
+            changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 1)
+            db.session.add(changetrack)
+            db.session.commit()
+    for trackid in oldset:
+        if trackid not in newset:
+            changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 0)
+            db.session.add(changetrack)
+            db.session.commit()
+   
+    get_playlist_uri()
+
+    stmt = delete(Tracks).where(Tracks.isnew == False).where(Tracks.userid == session['userid'])
+    db.session.execute(stmt)
+    db.session.commit()
+
+    stmt = update(Tracks).where(Tracks.userid == session['userid']).values(isnew = False)
+    db.session.execute(stmt)
+    db.session.commit()
+    return redirect('/loadingplaylist3')
+
+@app.route('/loadingplaylist3', methods = ["GET", "POST"])
+def loadingplaylist3():
+
     session['token_info'], authorized = get_token()
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-    sp.playlist_replace_items(session['playlist_uri'], session['tracklist'])
+
+    addtracks = []
+    deletetracks = []
+    stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
+    db_result = db.session.execute(stmt).scalars()
+    
+    i = 0
+    for track in db_result:
+        if i == 100:
+            break
+        i += 1
+        if track.add_or_del == 1:
+            addtracks.append(track.trackid)
+        else:
+            deletetracks.append(track.trackid)
+        stmt = delete(ChangeTracks).where(ChangeTracks.trackid == track.trackid).where(ChangeTracks.userid == session['userid'])
+        db.session.execute(stmt)
+    db.session.commit()
+        
+
+    if addtracks:
+        sp.playlist_add_items(session['playlist_uri'], addtracks)
+    if deletetracks:
+        sp.playlist_remove_all_occurrences_of_items(session['playlist_uri'], deletetracks)
+
+
+    stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
+    if not db.session.execute(stmt).first():
+        return redirect('/success')
+    return redirect('/loadingplaylist3')
 
 
 @app.route('/success', methods = ["GET", "POST"])
