@@ -27,6 +27,7 @@ class Users(Base):
     userid: Mapped[str] = mapped_column(String(50), primary_key = True)
     playlist_name: Mapped[str] = mapped_column(String(50))
     playlist_length: Mapped[int] = mapped_column()
+    #playlist_uri: Mapped[str] = mapped_column(String(50))
 
     def __repr__(self) -> str:
         return f"Users(userid={self.userid!r}, playlist_name={self.playlist_name!r}, playlist_length={self.playlist_length!r})"
@@ -37,6 +38,12 @@ class Tracks(Base):
     trackid: Mapped[str] = mapped_column(String(50))
     userid: Mapped[str] = mapped_column(ForeignKey("users.userid"))
     isnew: Mapped[bool] = mapped_column(default = True)
+
+class ChangeTracks(Base):
+    __tablename__ = "changetracks"
+    pkid: Mapped[int] = mapped_column(primary_key=True)
+    trackid: Mapped[str] = mapped_column(String(50))
+    add_or_del: Mapped[bool] = mapped_column()
 
 with app.app_context():
     db.create_all()
@@ -79,22 +86,31 @@ def userinput():
     if request.method == "POST":
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
         session['userid'] = sp.me()["id"]
-        session["playlist_name"] = request.form.get('playlist_name')
+        new_name = request.form.get('playlist_name')
         session["playlist_length"] = int(request.form.get('playlist_length'))
         session['token_info'], authorized = get_token()
         
         
-        #!make sure user can only have one playlist
-        #!if playlist name saved for user doesnt match new name, update entry
         stmt = select(Users).where(Users.userid == session['userid'])
-        if not db.session.execute(stmt).first():
+        user = db.session.execute(stmt).scalar_one_or_none()
+        if user:
+            if user.playlist_name != new_name:
+                session['playlist_name'] = user.playlist_name
+                get_playlist_uri()
+                stmt = update(Users).where(Users.userid == session['userid']).values(playlist_name = new_name)
+                db.session.execute(stmt)
+                sp.playlist_change_details(session['playlist_uri'], new_name)
+                session['playlist_name'] = new_name
+        else:
+            session['playlist_name'] = new_name
             user = Users(userid = session['userid'], playlist_name = session["playlist_name"], playlist_length = session["playlist_length"])
             db.session.add(user)
             db.session.commit()
 
+        session['playlist_name'] = new_name
         session['offset'] = 0
         session['extra'] = session['playlist_length']%50
-        get_playlist_uri()
+        
         return redirect('/loadingplaylist')
     return render_template('input.html')
 
@@ -102,8 +118,7 @@ def userinput():
 @app.route('/loadingplaylist', methods = ["GET", "POST"])
 def loadingplaylist():
     get_tracklist()
-    # have ^^ return additions to offset val to create exit condition
-    # this will reduce data coupling
+
     if session['offset'] == session['playlist_length']:
         return redirect('/loadingplaylist2')
     return redirect('/loadingplaylist')
@@ -112,15 +127,6 @@ def loadingplaylist():
 @app.route('/loadingplaylist2', methods = ["GET", "POST"])
 def loadingplaylist2():
 
-    session['token_info'], authorized = get_token()
-    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-    
-    #! build up ltracklist from sql, delete regular "tracklist"
-
-    addtracks = []
-    deletetracks = []
-    
-    #get only the first "plist length" number of tracks
     stmt = select(Tracks).where(Tracks.userid == session['userid']).where(Tracks.isnew == True)
     newtracks = db.session.execute(stmt).scalars()
 
@@ -132,24 +138,22 @@ def loadingplaylist2():
 
     for track in oldtracks: 
         oldset.add(track.trackid)
-
     for track in newtracks: 
         newset.add(track.trackid)
 
     for trackid in newset:
         if trackid not in oldset:
-            addtracks.append(trackid)
-
+            changetrack = ChangeTracks(trackid = trackid, add_or_del = 1)
+            db.session.add(changetrack)
+            db.session.commit()
     for trackid in oldset:
         if trackid not in newset:
-            deletetracks.append(trackid)
+            changetrack = ChangeTracks(trackid = trackid, add_or_del = 0)
+            db.session.add(changetrack)
+            db.session.commit()
    
-    if addtracks:
-        sp.playlist_add_items(session['playlist_uri'], addtracks)
-    if deletetracks:
-        sp.playlist_remove_all_occurrences_of_items(session['playlist_uri'], deletetracks)
+    get_playlist_uri()
 
-    
     stmt = delete(Tracks).where(Tracks.isnew == False).where(Tracks.userid == session['userid'])
     db.session.execute(stmt)
     db.session.commit()
@@ -158,25 +162,39 @@ def loadingplaylist2():
     db.session.execute(stmt)
     db.session.commit()
 
-    return redirect('/success')
+def loadingplaylist3():
+
+    session['token_info'], authorized = get_token()
+    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+
+    addtracks = []
+    deletetracks = []
+    
+    if addtracks:
+        sp.playlist_add_items(session['playlist_uri'], addtracks)
+    if deletetracks:
+        sp.playlist_remove_all_occurrences_of_items(session['playlist_uri'], deletetracks)
+
+    if (len(addtracks) + len(deletetracks)) < 100:
+        return redirect('/success')
+    return redirect('/loadingplaylist3')
 
 
 @app.route('/success', methods = ["GET", "POST"])
 def success():
     #! get created or updated status from "set playlist"
     playlist_name = session["playlist_name"]
-    msg = f"Your playlist, {playlist_name}, has been updated!"
+    msg = f"Your playlist, {playlist_name}, is all set!"
     return render_template("success.html", msg = msg)
 
 
 
 
 
-# gets up to 100 tracks
+# gets up to 100 tracks, limited due to Spotify API
 def get_tracklist():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = []
-    #!! what if the length of the final tracklist is less than the playlist length??
     if (len(sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"])) < 50:
         tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
         session['offset'] = len(tracklist)
@@ -188,6 +206,7 @@ def get_tracklist():
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"]
         session['offset'] += 50
+
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
         track = Tracks(userid = session['userid'], trackid = tracklist[i])
@@ -229,7 +248,7 @@ def get_playlist_uri():
     else:
         playlist = sp.user_playlist_create(session['userid'], session["playlist_name"])
     session['playlist_uri'] = playlist["uri"]
-    print(session['playlist_uri'])
+
 
 
 def create_spotify_oauth():
