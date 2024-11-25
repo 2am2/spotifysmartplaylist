@@ -93,25 +93,29 @@ def userinput():
         
         stmt = select(Users).where(Users.userid == session['userid'])
         user = db.session.execute(stmt).scalar_one_or_none()
-
         if user:
             session['playlist_uri'] = user.playlist_uri
-            check_get_playlist_uri()
+            session['playlist_uri'] = check_get_playlist_uri()
         else:
             session['playlist_uri'] = "nothing"
             session['playlist_uri'] = check_get_playlist_uri()
             user = Users(userid = session['userid'], playlist_name = session["playlist_name"], playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'])
-            db.session.add(user)
+            db.session.add(user)         
             db.session.commit()
+        session['offset'] = 0
+        session['extra'] = session['playlist_length']%50
         return redirect('/loadingplaylist')
     return render_template('input.html')
 
 
 @app.route('/loadingplaylist', methods = ["GET", "POST"])
 def loadingplaylist():
-    session['tracklist'] = get_tracklist()
-    return redirect('/loadingplaylist2')
+    get_tracklist()
+    if session['offset'] == session['playlist_length']:
+        return redirect('/loadingplaylist2')
+    return redirect('/loadingplaylist')
 
+@app.route('/loadingplaylist2', methods = ["GET", "POST"])
 def loadingplaylist2():
 
     stmt = select(Tracks).where(Tracks.userid == session['userid']).where(Tracks.isnew == True)
@@ -138,8 +142,6 @@ def loadingplaylist2():
             changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 0)
             db.session.add(changetrack)
             db.session.commit()
-   
-    get_playlist_uri()
 
     stmt = delete(Tracks).where(Tracks.isnew == False).where(Tracks.userid == session['userid'])
     db.session.execute(stmt)
@@ -190,7 +192,8 @@ def loadingplaylist3():
 @app.route('/success', methods = ["GET", "POST"])
 def success():
     #! get created or updated status from "set playlist"
-    msg = f"Your playlist, {session["playlist_name"]}, is all set!"
+    playlist_name = session["playlist_name"]
+    msg = f"Your playlist, {playlist_name}, is all set!"
     return render_template("success.html", msg = msg)
 
 
@@ -198,11 +201,23 @@ def success():
 def get_tracklist():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = []
-    tracklist += sp.current_user_saved_tracks(limit = session['playlist_length'])["items"]
+    if (len(sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"])) < 50:
+        tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
+        session['offset'] = len(tracklist)
+        return redirect('/loadingplaylist2')
+    elif (session['extra'] == (session['playlist_length'] - session['offset']) ):
+        tracklist += sp.current_user_saved_tracks(limit = session['extra'], offset = session['offset'])["items"]
+        session['offset'] += session['extra']
+    else: 
+        sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+        tracklist += sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"]
+        session['offset'] += 50
 
     for i in range(len(tracklist)):
         tracklist[i] = tracklist[i]["track"]["uri"]
-
+        track = Tracks(userid = session['userid'], trackid = tracklist[i])
+        db.session.add(track)
+    db.session.commit()
     return tracklist
 
 
@@ -228,10 +243,8 @@ def get_token():
 def check_get_playlist_uri():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     playlists = sp.current_user_playlists()
-    
+    playlist_exists = 0
     for idx in range(len(playlists["items"])):
-        #! change playist name here if different
-        playlist_exists = 0
         if session["playlist_uri"] == playlists["items"][idx]["uri"]:
             playlist_uri = playlists["items"][idx]["uri"]
             playlist_exists = 1
@@ -239,9 +252,13 @@ def check_get_playlist_uri():
                 sp.playlist_change_details(playlist_uri, session['playlist_name'])
                 stmt = update(Users).where(Users.userid == session['userid']).values(playlist_name = session['playlist_name'])
                 db.session.execute(stmt)
-                
-        if not playlist_exists:
-            playlist_uri = sp.user_playlist_create(session['userid'], session["playlist_name"])["uri"]
+                db.session.commit()
+            break
+    if not playlist_exists:
+        playlist_uri = sp.user_playlist_create(session['userid'], session["playlist_name"])["uri"]
+        stmt = update(Users).where(Users.userid == session['userid']).values(playlist_uri = playlist_uri)
+        db.session.execute(stmt)
+        db.session.commit()
     return playlist_uri
 
 
