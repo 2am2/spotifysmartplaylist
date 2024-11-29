@@ -84,19 +84,21 @@ def aboutme():
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
+    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+    session['userid'] = sp.me()["id"]
+    stmt = select(Users).where(Users.userid == session['userid'])
+    user = db.session.execute(stmt).scalar_one_or_none()
     if request.method == "POST":
-        sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-        session['userid'] = sp.me()["id"]
         session['playlist_name'] = request.form.get('playlist_name')
         session["playlist_length"] = int(request.form.get('playlist_length'))
         session['token_info'], authorized = get_token()
-        
-        
-        stmt = select(Users).where(Users.userid == session['userid'])
-        user = db.session.execute(stmt).scalar_one_or_none()
         if user:
             session['playlist_uri'] = user.playlist_uri
             session['playlist_uri'] = check_get_playlist_uri()
+            if session['playlist_length'] != user.playlist_length:
+                stmt = update(Users).where(Users.userid == session['userid']).values(playlist_length = session['playlist_length'])
+                db.session.execute(stmt)
+                db.session.commit()
         else:
             session['playlist_uri'] = "nothing"
             session['playlist_uri'] = check_get_playlist_uri()
@@ -106,7 +108,13 @@ def userinput():
         session['offset'] = 0
         session['extra'] = session['playlist_length']%50
         return redirect('/loadingplaylist')
-    return render_template('input.html')
+    if user:
+        name = user.playlist_name   
+        length = user.playlist_length
+    else:
+        name = "RECENT LIKES :)"
+        length = 100
+    return render_template('input.html', name = name, length = length)
 
 
 @app.route('/loadingplaylist', methods = ["GET", "POST"])
