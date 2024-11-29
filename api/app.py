@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+load_dotenv()
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('POSTGRES_URL')
 app.secret_key = 'SOMETHING-RANDOM'
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 
@@ -192,8 +193,7 @@ def loadingplaylist3():
 @app.route('/success', methods = ["GET", "POST"])
 def success():
     #! get created or updated status from "set playlist"
-    playlist_name = session["playlist_name"]
-    msg = f"Your playlist, {playlist_name}, is all set!"
+    msg = session["playlist_name"]
     return render_template("success.html", msg = msg)
 
 
