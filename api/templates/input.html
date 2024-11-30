@@ -7,15 +7,22 @@
 
 <body>
 {% block content %}
-<h1> Put your playlist's name and length here! </h1>
-
-<form action = /userinput method = "post">
-<label for="playlist_name">Playlist name!</label><br>
-<input type="text" name="playlist_name" value = "RECENT LIKES :)"><br><br>
-<label for="playlist_length">Playlist length!! (Max 100) </label><br>
-<input type="text" name = "playlist_length" value = "100"><br>    
-<input type="submit" value="make it!">
-</form>
+<h2> Input your playlist's name and length!</h2>
+<h4> 
+    This playlist will pull up your most recently liked tracks on Spotify, so you can save it to ur phone!<br>
+    Great for situations where you don't have data or wifi!<br>
+    come back here and click "make it" to refresh your playlist<br>
+    Auto - updating of the playlist coming soon!<br>
+</h4>
+    <form action = /userinput method = "post">
+    <label for="playlist_name">Playlist name!</label><br>
+    <input type="text" name="playlist_name" value = "{{name}}"><br><br>
+    <label for="playlist_length">Playlist length!</label><br>
+    <input type="number" name = "playlist_length" value = "{{length}}"><br><br>    
+    <!-- <label for="update_frequency">Update it every __ hours </label><br>
+    <input type="number" name = "update_frequency" value = "4"><br><br>  -->
+    <input type="submit" value="make it!">
+    </form>
 {% endblock %}
 </body>
 
