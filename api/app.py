@@ -209,13 +209,12 @@ def success():
 def get_tracklist():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
     tracklist = []
-    if (len(sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"])) < 50:
-        tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
-        session['offset'] = len(tracklist)
-        return redirect('/loadingplaylist2')
-    elif (session['extra'] == (session['playlist_length'] - session['offset']) ):
+    if (session['extra'] == (session['playlist_length'] - session['offset']) ):
         tracklist += sp.current_user_saved_tracks(limit = session['extra'], offset = session['offset'])["items"]
         session['offset'] += session['extra']
+    elif (len(sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"])) < 50:
+        tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
+        session['offset'] = session['playlist_length']
     else: 
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"]
