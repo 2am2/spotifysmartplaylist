@@ -7,12 +7,18 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select, delete, String, ForeignKey, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
 from dotenv import load_dotenv
+import re
 
 
 app = Flask(__name__)
-
 load_dotenv()
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('POSTGRES_URL')
+
+# fixing Vercel's postgres uri
+uri = os.getenv('POSTGRES_URL')  
+if uri and uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.secret_key = 'SOMETHING-RANDOM'
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 
