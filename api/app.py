@@ -114,7 +114,7 @@ def userinput():
         else:
             session['playlist_uri'] = "nothing"
             session['playlist_uri'] = check_get_playlist_uri()
-            if session['auto_update'] == "on":
+            if session['auto_update']:
                 session['auto_update'] = True
             user = Users(userid = session['userid'], playlist_name = session["playlist_name"], 
             playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'], 
