@@ -1,5 +1,9 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/app" }
-  ]
+  ],
+  "crons": [{
+    "path": "/api/autoupdate",
+    "schedule": "0 11 * * *"  // Runs daily at 11am UTC/3am pst
+  }]
 }

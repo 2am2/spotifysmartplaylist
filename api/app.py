@@ -16,7 +16,9 @@ load_dotenv()
 # fixing Vercel's postgres uri
 uri = os.getenv('POSTGRES_URL')  
 if uri and uri.startswith("postgres://"):
-    uri = uri.replace("postgres://", "postgresql://", 1)
+    uri = uri.replace("postgres://", "postgresql+psycopg2://", 1)
+
+#uri = 'sqlite:///users.db'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.secret_key = 'SOMETHING-RANDOM'
@@ -35,6 +37,8 @@ class Users(Base):
     playlist_name: Mapped[str] = mapped_column(String(50))
     playlist_length: Mapped[int] = mapped_column()
     playlist_uri: Mapped[str] = mapped_column(String(50))
+    auto_update: Mapped[bool] = mapped_column(default = False)
+    refresh_token: Mapped[str] = mapped_column(String(100))
 
     def __repr__(self) -> str:
         return f"Users(userid={self.userid!r}, playlist_name={self.playlist_name!r}, playlist_length={self.playlist_length!r})"
@@ -73,6 +77,7 @@ def authorize():
 
 @app.route('/stop')
 def stop():
+    #delete user from db
     return "placeholder until u can actually stop plist updates"
 
 
@@ -98,6 +103,7 @@ def userinput():
         session['playlist_name'] = request.form.get('playlist_name')
         session["playlist_length"] = int(request.form.get('playlist_length'))
         session['token_info'], authorized = get_token()
+        session['auto_update'] = request.form.get("auto_update")
         if user:
             session['playlist_uri'] = user.playlist_uri
             session['playlist_uri'] = check_get_playlist_uri()
@@ -108,9 +114,14 @@ def userinput():
         else:
             session['playlist_uri'] = "nothing"
             session['playlist_uri'] = check_get_playlist_uri()
-            user = Users(userid = session['userid'], playlist_name = session["playlist_name"], playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'])
+
+            user = Users(userid = session['userid'], playlist_name = session["playlist_name"], 
+            playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'], 
+            auto_update = session['auto_update'],refresh_token = session['token_info'].get('refresh_token'))
+            
             db.session.add(user)         
             db.session.commit()
+
         session['offset'] = 0
         session['extra'] = session['playlist_length']%50
         return redirect('/loadingplaylist')
@@ -283,3 +294,17 @@ def create_spotify_oauth():
             client_secret=os.getenv("CLIENT_SECRET"),
             redirect_uri=url_for('authorize', _external=True),
             scope="user-library-read playlist-modify-public playlist-modify-private")
+
+def auto_update():
+    stmt = select(Users).where(Users.auto_update == True)
+    users = db.session.execute(stmt).scalars()
+    for user in users:
+        sp = spotipy.Spotify(auth=user.refresh_token)
+        session['userid'] = sp.me()["id"]
+        session['playlist_name'] = user.playlist_name
+        session["playlist_length"] = user.playlist_length
+        session['playlist_uri'] = check_get_playlist_uri
+        session['offset'] = 0
+        session['extra'] = session['playlist_length']%50
+        loadingplaylist()
+
