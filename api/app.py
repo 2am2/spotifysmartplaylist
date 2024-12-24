@@ -111,6 +111,11 @@ def userinput():
                 stmt = update(Users).where(Users.userid == session['userid']).values(playlist_length = session['playlist_length'])
                 db.session.execute(stmt)
                 db.session.commit()
+            if session['auto_update']:
+                session['auto_update'] = True
+                stmt = update(Users).where(Users.userid == session['userid']).values(auto_update = session['auto_update'])
+                db.session.execute(stmt)
+                db.session.commit()
         else:
             session['playlist_uri'] = "nothing"
             session['playlist_uri'] = check_get_playlist_uri()
