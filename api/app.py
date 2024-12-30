@@ -271,7 +271,7 @@ def get_token():
 
 
 def check_get_playlist_uri():
-    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+    sp = spotipy.Spotify(auth=user.refresh_token)
     playlists = sp.current_user_playlists()
     playlist_exists = 0
     for idx in range(len(playlists["items"])):
@@ -301,6 +301,81 @@ def create_spotify_oauth():
             redirect_uri=url_for('authorize', _external=True),
             scope="user-library-read playlist-modify-public playlist-modify-private")
 
+#Need these refactored versions of loading playlist functions
+#to run cron job
+
+def process_loadingplaylist():
+    get_tracklist()
+    if session['offset'] == session['playlist_length']:
+        process_loadingplaylist2()
+
+def process_loadingplaylist2():
+    stmt = select(Tracks).where(Tracks.userid == session['userid']).where(Tracks.isnew == True)
+    newtracks = db.session.execute(stmt).scalars()
+
+    stmt = select(Tracks).where(Tracks.userid == session['userid']).where(Tracks.isnew == False)
+    oldtracks = db.session.execute(stmt).scalars()
+
+    newset = set()
+    oldset = set()
+
+    for track in oldtracks: 
+        oldset.add(track.trackid)
+    for track in newtracks: 
+        newset.add(track.trackid)
+
+    for trackid in newset:
+        if trackid not in oldset:
+            changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 1)
+            db.session.add(changetrack)
+            db.session.commit()
+    for trackid in oldset:
+        if trackid not in newset:
+            changetrack = ChangeTracks(userid = session['userid'], trackid = trackid, add_or_del = 0)
+            db.session.add(changetrack)
+            db.session.commit()
+
+    stmt = delete(Tracks).where(Tracks.isnew == False).where(Tracks.userid == session['userid'])
+    db.session.execute(stmt)
+    db.session.commit()
+
+    stmt = update(Tracks).where(Tracks.userid == session['userid']).values(isnew = False)
+    db.session.execute(stmt)
+    db.session.commit()
+    process_loadingplaylist3()
+
+def process_loadingplaylist3():
+    session['token_info'], authorized = get_token()
+    sp = spotipy.Spotify(auth=user.refresh_token)
+
+    addtracks = []
+    deletetracks = []
+    stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
+    db_result = db.session.execute(stmt).scalars()
+    
+    i = 0
+    for track in db_result:
+        if i == 100:
+            break
+        i += 1
+        if track.add_or_del == 1:
+            addtracks.append(track.trackid)
+        else:
+            deletetracks.append(track.trackid)
+        stmt = delete(ChangeTracks).where(ChangeTracks.trackid == track.trackid).where(ChangeTracks.userid == session['userid'])
+        db.session.execute(stmt)
+    db.session.commit()
+        
+    if addtracks:
+        sp.playlist_add_items(session['playlist_uri'], addtracks)
+    if deletetracks:
+        sp.playlist_remove_all_occurrences_of_items(session['playlist_uri'], deletetracks)
+
+    stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
+    if not db.session.execute(stmt).first():
+        print("Playlist update successful")
+
+# Update the auto_update function to call these new functions
 def auto_update():
     stmt = select(Users).where(Users.auto_update == True)
     users = db.session.execute(stmt).scalars()
@@ -309,8 +384,7 @@ def auto_update():
         session['userid'] = sp.me()["id"]
         session['playlist_name'] = user.playlist_name
         session["playlist_length"] = user.playlist_length
-        session['playlist_uri'] = check_get_playlist_uri
+        session['playlist_uri'] = check_get_playlist_uri()
         session['offset'] = 0
-        session['extra'] = session['playlist_length']%50
-        loadingplaylist()
-
+        session['extra'] = session['playlist_length'] % 50
+        process_loadingplaylist()
