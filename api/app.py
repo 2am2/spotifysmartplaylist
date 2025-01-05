@@ -7,8 +7,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select, delete, String, ForeignKey, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
 from dotenv import load_dotenv
-import re
-
 
 app = Flask(__name__)
 load_dotenv()
@@ -17,8 +15,6 @@ load_dotenv()
 uri = os.getenv('POSTGRES_URL')  
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql+psycopg2://", 1)
-
-#uri = 'sqlite:///users.db'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.secret_key = 'SOMETHING-RANDOM'
@@ -104,6 +100,7 @@ def userinput():
         session["playlist_length"] = int(request.form.get('playlist_length'))
         session['token_info'], authorized = get_token()
         session['auto_update'] = request.form.get("auto_update")
+        session['refresh_token'] = session['token_info'].get('refresh_token')
         if user:
             session['playlist_uri'] = user.playlist_uri
             session['playlist_uri'] = check_get_playlist_uri()
@@ -123,7 +120,7 @@ def userinput():
                 session['auto_update'] = True
             user = Users(userid = session['userid'], playlist_name = session["playlist_name"], 
             playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'], 
-            auto_update = session['auto_update'],refresh_token = session['token_info'].get('refresh_token'))
+            auto_update = session['auto_update'],refresh_token = session['refresh_token'])
             
             db.session.add(user)         
             db.session.commit()
@@ -346,7 +343,7 @@ def process_loadingplaylist2():
 
 def process_loadingplaylist3():
     session['token_info'], authorized = get_token()
-    sp = spotipy.Spotify(auth=user.refresh_token)
+    sp = spotipy.Spotify(auth = session['refresh_token'])
 
     addtracks = []
     deletetracks = []
