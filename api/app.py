@@ -268,7 +268,7 @@ def get_token():
 
 
 def check_get_playlist_uri():
-    sp = spotipy.Spotify(auth=user.refresh_token)
+    sp = spotipy.Spotify(auth=session['refresh_token'])
     playlists = sp.current_user_playlists()
     playlist_exists = 0
     for idx in range(len(playlists["items"])):
@@ -381,6 +381,7 @@ def auto_update():
         session['userid'] = sp.me()["id"]
         session['playlist_name'] = user.playlist_name
         session["playlist_length"] = user.playlist_length
+        session['refresh_token'] = user.refresh_token
         session['playlist_uri'] = check_get_playlist_uri()
         session['offset'] = 0
         session['extra'] = session['playlist_length'] % 50
