@@ -12,7 +12,7 @@ app = Flask(__name__)
 load_dotenv()
 
 # fixing Vercel's postgres uri
-uri = os.getenv('POSTGRES_URL')  
+uri = os.getenv('POSTGRES_URL')
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql+psycopg2://", 1)
 
@@ -93,7 +93,6 @@ def aboutme():
 def userinput():
     #either session or token info is nonetype for some reason?
     sp = spotipy.Spotify(auth = session.get('token_info').get('access_token'))
-    print(sp)
     session['userid'] = sp.me()["id"]
     stmt = select(Users).where(Users.userid == session['userid'])
     user = db.session.execute(stmt).scalar_one_or_none()
@@ -120,18 +119,18 @@ def userinput():
             session['playlist_uri'] = check_get_playlist_uri()
             if session['auto_update']:
                 session['auto_update'] = True
-            user = Users(userid = session['userid'], playlist_name = session["playlist_name"], 
-            playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'], 
+            user = Users(userid = session['userid'], playlist_name = session["playlist_name"],
+            playlist_length = session["playlist_length"], playlist_uri = session['playlist_uri'],
             auto_update = session['auto_update'],refresh_token = session['refresh_token'])
-            
-            db.session.add(user)         
+
+            db.session.add(user)
             db.session.commit()
 
         session['offset'] = 0
         session['extra'] = session['playlist_length']%50
         return redirect('/loadingplaylist')
     if user:
-        name = user.playlist_name   
+        name = user.playlist_name
         length = user.playlist_length
     else:
         name = "RECENT LIKES :)"
@@ -158,9 +157,9 @@ def loadingplaylist2():
     newset = set()
     oldset = set()
 
-    for track in oldtracks: 
+    for track in oldtracks:
         oldset.add(track.trackid)
-    for track in newtracks: 
+    for track in newtracks:
         newset.add(track.trackid)
 
     for trackid in newset:
@@ -193,7 +192,7 @@ def loadingplaylist3():
     deletetracks = []
     stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
     db_result = db.session.execute(stmt).scalars()
-    
+
     i = 0
     for track in db_result:
         if i == 100:
@@ -206,7 +205,7 @@ def loadingplaylist3():
         stmt = delete(ChangeTracks).where(ChangeTracks.trackid == track.trackid).where(ChangeTracks.userid == session['userid'])
         db.session.execute(stmt)
     db.session.commit()
-        
+
 
     if addtracks:
         sp.playlist_add_items(session['playlist_uri'], addtracks)
@@ -227,6 +226,15 @@ def success():
     return render_template("success.html", msg = msg)
 
 
+
+@app.route('/api/autoupdate', methods=['GET'])
+def auto_update_endpoint():
+    auto_update()
+    return "Auto update triggered", 200
+
+
+
+
 # gets up to 100 tracks, limited due to Spotify API
 def get_tracklist():
     sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
@@ -237,7 +245,7 @@ def get_tracklist():
     elif (len(sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"])) < 50:
         tracklist += sp.current_user_saved_tracks(limit = 50)["items"]
         session['offset'] = session['playlist_length']
-    else: 
+    else:
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
         tracklist += sp.current_user_saved_tracks(limit = 50, offset = session['offset'])["items"]
         session['offset'] += 50
@@ -248,6 +256,7 @@ def get_tracklist():
         db.session.add(track)
     db.session.commit()
     return tracklist
+
 
 
 # Checks to see if token is valid and gets a new token if not
@@ -318,9 +327,9 @@ def process_loadingplaylist2():
     newset = set()
     oldset = set()
 
-    for track in oldtracks: 
+    for track in oldtracks:
         oldset.add(track.trackid)
-    for track in newtracks: 
+    for track in newtracks:
         newset.add(track.trackid)
 
     for trackid in newset:
@@ -351,7 +360,7 @@ def process_loadingplaylist3():
     deletetracks = []
     stmt = select(ChangeTracks).where(ChangeTracks.userid == session['userid'])
     db_result = db.session.execute(stmt).scalars()
-    
+
     i = 0
     for track in db_result:
         if i == 100:
@@ -364,7 +373,7 @@ def process_loadingplaylist3():
         stmt = delete(ChangeTracks).where(ChangeTracks.trackid == track.trackid).where(ChangeTracks.userid == session['userid'])
         db.session.execute(stmt)
     db.session.commit()
-        
+
     if addtracks:
         sp.playlist_add_items(session['playlist_uri'], addtracks)
     if deletetracks:
