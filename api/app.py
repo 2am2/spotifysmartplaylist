@@ -91,7 +91,9 @@ def aboutme():
 
 @app.route('/userinput', methods = ['GET','POST'])
 def userinput():
-    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+    #either session or token info is nonetype for some reason?
+    sp = spotipy.Spotify(auth = session.get('token_info').get('access_token'))
+    print(sp)
     session['userid'] = sp.me()["id"]
     stmt = select(Users).where(Users.userid == session['userid'])
     user = db.session.execute(stmt).scalar_one_or_none()
@@ -268,7 +270,7 @@ def get_token():
 
 
 def check_get_playlist_uri():
-    sp = spotipy.Spotify(auth=session['refresh_token'])
+    sp = spotipy.Spotify(auth=session['token_info'].get('access_token'))
     playlists = sp.current_user_playlists()
     playlist_exists = 0
     for idx in range(len(playlists["items"])):
